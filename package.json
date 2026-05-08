@@ -1,0 +1,25 @@
+{
+  "name": "astro-blog",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "sync-ai-rules": "node scripts/sync-ai-rules.mjs",
+    "prepare": "lefthook install"
+  },
+  "dependencies": {
+    "astro": "^6.3.1"
+  },
+  "devDependencies": {
+    "lefthook": "^2.1.6"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["lefthook"]
+  }
+}
