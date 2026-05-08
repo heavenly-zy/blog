@@ -1,0 +1,2 @@
+- [] Biome 和 Astro 自带的格式化冲突，如何解决？
+- [] script 中添加 Biome 格式化脚本，git 提交时通过 lefthook 执行 Biome 格式化
