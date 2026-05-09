@@ -22,9 +22,7 @@
     "@biomejs/biome": "2.4.14",
     "lefthook": "^2.1.6"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": ["lefthook"]
-  },
+  "trustedDependencies": ["lefthook"],
   "imports": {
     "#*": "./src/*"
   }

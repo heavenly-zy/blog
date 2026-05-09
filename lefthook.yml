@@ -2,4 +2,4 @@ pre-commit:
   commands:
     sync-ai-rules:
       glob: "AGENTS.md"
-      run: pnpm sync-ai-rules && git add .github/copilot-instructions.md .github/copilot-commit-message-instructions.md .cursor/rules/main.mdc
+      run: bun sync-ai-rules && git add .github/copilot-instructions.md .github/copilot-commit-message-instructions.md .cursor/rules/main.mdc

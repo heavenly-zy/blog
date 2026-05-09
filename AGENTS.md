@@ -2,7 +2,7 @@
 
 > 项目 AI 助手指令的**唯一权威来源**。
 >
-> **修改后运行 `pnpm sync-ai-rules`** 自动同步至：
+> **修改后运行 `bun sync-ai-rules`** 自动同步至：
 > - `.github/copilot-instructions.md`（GitHub Copilot Chat / 代码生成）
 > - `.github/copilot-commit-message-instructions.md`（Copilot "生成提交消息" 按钮）
 > - `.cursor/rules/main.mdc`（Cursor）
@@ -11,7 +11,7 @@
 
 ## 通用
 - 使用简体中文回复与代码注释。
-- 包管理器使用 `pnpm`，不要建议 `npm` / `yarn`。
+- 包管理器使用 `bun`，不要建议 `npm` / `yarn`。
 
 ## 技术栈
 - Astro 6.x（继承 `astro/tsconfigs/strict`），Node ≥ 22.12。
@@ -34,7 +34,7 @@
 ## 提交消息规则
 - 始终使用简体中文。
 - 遵循 Conventional Commits：第一行 `<type>: <简短描述>`。
-- type 保留英文：feat / feat-wip / fix / docs / refactor / chore / test / perf / style / build / ci。
+- type 保留英文：feat / fix / docs / refactor / chore / test / perf / style / build / ci。
 - 描述用中文，标题行不超过 50 字符。
 - 必要时空一行后写正文，每行不超过 72 字符。
 - 只描述"做了什么 / 为什么"，不要罗列文件名。
