@@ -25,6 +25,48 @@
 
 从根源消除漂移：**`AGENTS.md` 是唯一可编辑的信源，三份副本是构建产物，不进 git、自动生成、写入后只读**。
 
+## 为什么不像 CLAUDE.md 一样用引用？
+
+`CLAUDE.md` 全文只有一行：
+
+```text
+@AGENTS.md
+```
+
+这是 Claude Code 私有的导入语法——客户端加载 `CLAUDE.md` 时会把 `AGENTS.md` 全文展开到上下文里，所以 Claude Code 不需要副本。
+
+但 GitHub Copilot 与 Cursor 都没有对应的引用机制：
+
+- **Copilot** 固定读 `.github/copilot-instructions.md` 与 `.github/copilot-commit-message-instructions.md`，把整个文件当成纯文本提示词喂给模型，**没有** import / include 语法。
+- **Cursor** 固定读 `.cursor/rules/*.mdc`（Markdown + YAML frontmatter），同样不支持指向外部文件的引用。
+
+而且这三份副本并不是"`AGENTS.md` 的原样拷贝"——`scripts/sync-ai-rules.mjs` 会针对每个工具做不同的包装：
+
+| 副本 | 加工方式 |
+| --- | --- |
+| `.github/copilot-instructions.md` | banner + `# Copilot Instructions` 标题 + AGENTS.md 全文 |
+| `.github/copilot-commit-message-instructions.md` | banner + 标题 + **仅截取 `## 提交消息规则` 一节** |
+| `.cursor/rules/main.mdc` | YAML frontmatter（`description` / `alwaysApply`）+ banner + AGENTS.md 全文 |
+
+所以即使未来某个工具支持外部引用，"裁剪 / 包装"这个环节依然省不掉。
+
+## 为什么不用 symlink？
+
+另一个看起来直觉的方案是：用 symlink 让 `.github/copilot-instructions.md` 等直接指向 `AGENTS.md`。但这条路同样走不通：
+
+1. **路径与文件名是工具规定死的**——`copilot-instructions.md` ≠ `AGENTS.md` ≠ `main.mdc`，symlink 解决不了"必须叫这个名字"这个约束本身（只是把"复制"换成"建链"，文件依然得存在）。
+2. **内容也不能等同于 `AGENTS.md`**——前一节那张加工表里，commit-message 副本只截取 `## 提交消息规则` 一节，`main.mdc` 还要在头部包一层 YAML frontmatter。symlink 按字节透传，做不了裁剪 / 包装。
+3. **跨平台不可靠**——Windows 默认不还原 git 中的 symlink（git mode `120000`），checkout 出来是一行字面量路径文本而非真正的软链接：
+
+	```bash
+	$ cat .github/copilot-instructions.md
+	../AGENTS.md          # 不是软链，而是文本
+	```
+
+	要让 symlink 在 Windows 上正常工作，每个开发者都得单独配 `git config --global core.symlinks true`、开启 Windows 开发者模式、再重新 checkout；CI 还要单独处理。任何一步漏配都会踩坑，新人门槛高。
+
+**结论**：这三份副本必须是真实存在的文件，内容也不等于 `AGENTS.md` 原文，所以"复制 + 加工 + 自动同步"是必然选择，再用前述五层防御保证它们不被误改、不进 git。
+
 ## 方案
 
 ### 防御层级（自外而内）
