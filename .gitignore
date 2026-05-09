@@ -22,3 +22,11 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Claude Code 个人本地配置（权限白名单等），不应共享
+.claude/settings.local.json
+
+# AGENTS.md 自动同步生成的副本，请勿提交（运行 `bun sync-ai-rules` 重新生成）
+.github/copilot-instructions.md
+.github/copilot-commit-message-instructions.md
+.cursor/rules/main.mdc

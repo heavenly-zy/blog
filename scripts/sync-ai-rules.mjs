@@ -1,4 +1,10 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+	chmodSync,
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	writeFileSync,
+} from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,8 +26,8 @@ if (!commit) {
 }
 const commitBody = `${commit.replace(/^## 提交消息规则\n/, '').trimEnd()}\n`;
 
-const NOTE =
-	'<!-- 此文件由 scripts/sync-ai-rules.mjs 自动生成自 AGENTS.md，请勿直接编辑。 -->';
+const NOTE = `<!-- 此文件由 scripts/sync-ai-rules.mjs 自动生成自 AGENTS.md，请勿直接编辑。
+     如需修改，请编辑 AGENTS.md 后运行 \`bun sync-ai-rules\`。 -->`;
 
 write(
 	'.github/copilot-instructions.md',
@@ -44,5 +50,9 @@ console.log('  - .cursor/rules/main.mdc');
 function write(rel, content) {
 	const path = resolve(root, rel);
 	mkdirSync(dirname(path), { recursive: true });
+	if (existsSync(path)) {
+		chmodSync(path, 0o644);
+	}
 	writeFileSync(path, content, 'utf8');
+	chmodSync(path, 0o444);
 }

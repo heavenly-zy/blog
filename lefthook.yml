@@ -3,7 +3,12 @@ pre-commit:
   jobs:
     - name: sync-ai-rules
       glob: "AGENTS.md"
-      run: bun sync-ai-rules && git add .github/copilot-instructions.md .github/copilot-commit-message-instructions.md .cursor/rules/main.mdc
+      run: bun sync-ai-rules
+    - name: guard-generated-rules
+      glob: "{.github/copilot-instructions.md,.github/copilot-commit-message-instructions.md,.cursor/rules/main.mdc}"
+      run: |
+        printf '✗ 检测到自动生成的 AI 规则副本被加入提交：\n%s\n请编辑 AGENTS.md，commit 时会自动同步；如需手动刷新本地副本，运行 `bun sync-ai-rules`。\n' "{staged_files}"
+        exit 1
     - name: biome
       glob: "*.{js,ts,jsx,tsx,json,jsonc}"
       run: bunx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}

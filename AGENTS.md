@@ -2,12 +2,12 @@
 
 > 项目 AI 助手指令的**唯一权威来源**。
 >
-> **修改后运行 `bun sync-ai-rules`** 自动同步至：
+> **本文件改动后**，副本会在 `bun install` / commit 时自动同步至以下位置；如需立即刷新本地副本，可手动运行 `bun sync-ai-rules`：
 > - `.github/copilot-instructions.md`（GitHub Copilot Chat / 代码生成）
 > - `.github/copilot-commit-message-instructions.md`（Copilot "生成提交消息" 按钮）
 > - `.cursor/rules/main.mdc`（Cursor）
 >
-> `CLAUDE.md` 通过 `@AGENTS.md` 直接导入本文件，无需同步。
+> 这三份是**生成产物**，已 .gitignore 且为只读，请勿直接编辑。`CLAUDE.md` 通过 `@AGENTS.md` 直接导入本文件，无需同步。
 
 ## 通用
 - 使用简体中文回复与代码注释。

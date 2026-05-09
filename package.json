@@ -15,6 +15,7 @@
 		"check:fix": "biome check --write",
 		"sync-ai-rules": "node scripts/sync-ai-rules.mjs",
 		"prepare": "lefthook install",
+		"postinstall": "node scripts/sync-ai-rules.mjs",
 		"preinstall": "bunx only-allow bun"
 	},
 	"dependencies": {
