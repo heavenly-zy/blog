@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -10,7 +10,7 @@ if (bodyStart === -1) {
 	console.error('错误：AGENTS.md 未找到 ## 段落');
 	process.exit(1);
 }
-const body = source.slice(bodyStart + 1).trimEnd() + '\n';
+const body = `${source.slice(bodyStart + 1).trimEnd()}\n`;
 
 const sections = body.split(/\n(?=## )/);
 const commit = sections.find((s) => s.startsWith('## 提交消息规则'));
@@ -18,7 +18,7 @@ if (!commit) {
 	console.error('错误：AGENTS.md 未找到 "## 提交消息规则" 一节');
 	process.exit(1);
 }
-const commitBody = commit.replace(/^## 提交消息规则\n/, '').trimEnd() + '\n';
+const commitBody = `${commit.replace(/^## 提交消息规则\n/, '').trimEnd()}\n`;
 
 const NOTE =
 	'<!-- 此文件由 scripts/sync-ai-rules.mjs 自动生成自 AGENTS.md，请勿直接编辑。 -->';
