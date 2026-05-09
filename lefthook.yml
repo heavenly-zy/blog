@@ -1,5 +1,10 @@
 pre-commit:
-  commands:
-    sync-ai-rules:
+  parallel: true
+  jobs:
+    - name: sync-ai-rules
       glob: "AGENTS.md"
       run: bun sync-ai-rules && git add .github/copilot-instructions.md .github/copilot-commit-message-instructions.md .cursor/rules/main.mdc
+    - name: biome
+      glob: "*.{js,ts,jsx,tsx,json,jsonc}"
+      run: bunx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
