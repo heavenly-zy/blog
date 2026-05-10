@@ -201,6 +201,8 @@ marker 的命名约定：
 - 用 `:start` / `:end` 作为成对后缀。
 - HTML 注释在 markdown 渲染时不可见，AGENTS.md 阅读体验不变。
 
+> 副本中会被自动剥离：脚本生成 `.github/copilot-instructions.md` 与 `.cursor/rules/main.mdc` 时通过 `stripSyncMarkers()` 一次性删除所有 `<!-- sync:* -->` 行（正则只认 `sync:` 前缀，不会误伤 banner 那种 HTML 注释）。所以 marker 仅作为 `AGENTS.md` 内的程序锚点存在，不会进入模型读到的提示词。
+
 ### 2. fail-fast + 友好错误（兜底）
 
 如果 marker 被误删 / 改名 / 不成对，脚本会 `process.exit(1)` 并打印：

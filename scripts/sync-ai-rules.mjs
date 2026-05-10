@@ -16,7 +16,7 @@ if (bodyStart === -1) {
 	console.error('错误：AGENTS.md 未找到 ## 段落');
 	process.exit(1);
 }
-const body = `${source.slice(bodyStart + 1).trimEnd()}\n`;
+const body = `${stripSyncMarkers(source.slice(bodyStart + 1)).trimEnd()}\n`;
 
 const commitBody = `${extractMarkedRegion('sync:commit-message')}\n`;
 
@@ -75,4 +75,8 @@ function extractMarkedRegion(name) {
 		process.exit(1);
 	}
 	return source.slice(start + startMarker.length, end).trim();
+}
+
+function stripSyncMarkers(text) {
+	return text.replace(/^<!--\s*sync:[^\r\n]*-->\r?\n/gm, '');
 }
