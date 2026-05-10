@@ -1,0 +1,15 @@
+---
+import Layout from '#layouts/Layout.astro';
+
+export const getStaticPaths = async () => {
+	return [
+		{
+			params: {
+				id: undefined,
+			},
+		},
+	];
+};
+---
+
+<Layout title="技术文章"> 技术文章 </Layout>
