@@ -18,7 +18,9 @@
 		"preinstall": "bunx only-allow bun"
 	},
 	"dependencies": {
-		"astro": "^6.3.1"
+		"@tailwindcss/vite": "4.3.0",
+		"astro": "^6.3.1",
+		"tailwindcss": "4.3.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.14",

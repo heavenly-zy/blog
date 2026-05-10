@@ -1,15 +1,37 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
 <!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 		<link rel="icon" href="/favicon.ico" />
+		<link rel="manifest" href="/site.webmanifest" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro Basics</title>
 	</head>
 	<body>
-		<slot />
+		<div
+			id="page"
+			class="flex min-h-screen overflow-hidden rounded-md text-(--text) md:mx-10 md:mt-14"
+		>
+			<div class="hidden min-w-64 bg-(--side-bg) md:block">Left</div>
+			<div class="w-full flex-1 bg-(--content-bg) pb-20">
+				<slot />
+			</div>
+			<div class="hidden min-w-64 bg-(--side-bg) xl:block">Right</div>
+		</div>
 	</body>
 </html>
 
