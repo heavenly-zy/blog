@@ -163,11 +163,14 @@ pre-commit:
 
 副本已 `.gitignore`，sync 后不会被 add 进 commit；保留这一步纯粹是为了开发者本地体验。
 
-### 为什么用 `postinstall` 而不是 `prepare`？
+### 为什么把 `lefthook install` 和 sync 都合并到 `postinstall`？
 
-- `prepare` 已被 `lefthook install` 占用，是 hook 安装的标准用法。
-- `postinstall` 是 bun / npm 约定的"依赖装完后"钩子，语义上正好匹配"装完依赖顺手把生成物补齐"。
-- 二者职责清晰分离，不需要把它们用 `&&` 串到一起。
+`package.json` 用一行 `"postinstall": "lefthook install && node scripts/sync-ai-rules.mjs"` 把两件"装完依赖后该做的事"串到一起，而没有按 lefthook 官方推荐拆成 `prepare: lefthook install` + `postinstall: ...`。理由：
+
+- `postinstall` 在 npm / yarn / pnpm / bun 中**行为完全一致**；`prepare` 在不同包管理器下偶有差异（bun 早期版本对 prepare 的处理也踩过坑）。
+- 集中一处认知最简——`bun install` 入口就是全部副作用。
+- `lefthook install` 是幂等的，每次 install 重复跑无副作用。
+- 不采用 prepare：lefthook 官方推荐它主要是为了覆盖 `npm publish` / git URL install 等边缘场景；本项目是私有站点，**不会发布**，那部分收益用不上。
 
 ### 为什么不加 `.cursor/.keep` / `.github/.keep`？
 
