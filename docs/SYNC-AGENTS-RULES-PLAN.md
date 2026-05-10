@@ -25,7 +25,13 @@
 
 从根源消除漂移：**`AGENTS.md` 是唯一可编辑的信源，三份副本是构建产物，不进 git、自动生成、写入后只读**。
 
-## 为什么不像 CLAUDE.md 一样用引用？
+## 为什么不像 CLAUDE.md 那样用 import？
+
+Claude Code 用 `@AGENTS.md` 把外部文件内容在加载时内联进当前文件——这种"加载时把另一个文件展开到当前位置"的机制：
+
+- Claude Code 官方称作 **memory import**。
+- 更通用的学术术语是 **transclusion**（Ted Nelson 在超文本理论中提出的"透明嵌入"概念）。
+- 工程实践里也叫 **file inclusion**，例如 C 的 `#include`、Pug 的 `include`、Liquid 的 `{% include %}`。
 
 `CLAUDE.md` 全文只有一行：
 
@@ -33,9 +39,9 @@
 @AGENTS.md
 ```
 
-这是 Claude Code 私有的导入语法——客户端加载 `CLAUDE.md` 时会把 `AGENTS.md` 全文展开到上下文里，所以 Claude Code 不需要副本。
+加载 `CLAUDE.md` 时 Claude Code 会把 `AGENTS.md` 全文展开到上下文里，所以它不需要副本。
 
-但 GitHub Copilot 与 Cursor 都没有对应的引用机制：
+但 GitHub Copilot 与 Cursor 都没有对应的 import 机制：
 
 - **Copilot** 固定读 `.github/copilot-instructions.md` 与 `.github/copilot-commit-message-instructions.md`，把整个文件当成纯文本提示词喂给模型，**没有** import / include 语法。
 - **Cursor** 固定读 `.cursor/rules/*.mdc`（Markdown + YAML frontmatter），同样不支持指向外部文件的引用。
@@ -74,7 +80,7 @@
 | 层 | 机制 | 防御目标 |
 | --- | --- | --- |
 | 1 | `.gitignore` 排除副本 | 副本不进 git，从根上避免漂移被 commit |
-| 2 | `postinstall` + `pre-commit` 自动 sync | 开发者无需记命令；AGENTS.md 改动后副本立即刷新 |
+| 2 | `postinstall` + `pre-commit` 自动 sync | 开发者无需记命令；AGENTS.md 改动会在下次 `bun install` / `git commit` 时同步刷新副本 |
 | 3 | `chmod 0o444`（写入后只读） | 编辑器层面 readonly 提示，劝退手改 |
 | 4 | lefthook guard job | 兜底拦截 `git add -f` 强加生成物 |
 | 5 | banner 注释 | 副本顶部明示来源与修改方式 |
@@ -153,7 +159,7 @@ pre-commit:
 | 方案 | 优 | 劣 |
 | --- | --- | --- |
 | 仅 `postinstall` 同步 | 最干净，commit 流程不动副本 | AGENTS.md 改动后到下次 install 之前，本地副本是过期的 |
-| **保留 `pre-commit` sync**（采纳） | AGENTS.md 改动 → 下次 commit 立即刷新；所见即所得 | pre-commit 多跑一个脚本（仅在 AGENTS.md 改动时） |
+| **保留 `pre-commit` sync**（采纳） | AGENTS.md 改动会随下次 commit 自动同步到本地副本，无需手动跑命令 | pre-commit 多跑一个脚本（仅在 AGENTS.md 改动时） |
 
 副本已 `.gitignore`，sync 后不会被 add 进 commit；保留这一步纯粹是为了开发者本地体验。
 
@@ -168,6 +174,56 @@ pre-commit:
 - 同步脚本的 `mkdirSync({ recursive: true })` 保证目录会被自动创建。
 - `postinstall` 钩子保证 fresh clone 后第一次 `bun install` 立即触发同步，目录与文件一起出现。
 - `.gitignore` 是**文件级精准忽略**（具体到 `.github/copilot-instructions.md` 等），目录本身仍可承载未来的真实内容（如 GitHub Actions workflows、Cursor 其他规则文件），不需要占位文件。
+
+## AGENTS.md 与脚本之间的耦合
+
+副本本身依赖的是"`# H1` + 顶部引用块 + `## H2` 章节"这套 markdown 结构约定，但**对单独某一节的截取**（commit-message 副本）无法只靠章节标题——把人类可读的中文标题当成程序锚点会让"改 AGENTS.md 标题"破坏脚本。
+
+为此引入两道处理：
+
+### 1. HTML 注释 marker 充当稳定锚点
+
+需要被单独截取的章节，在 AGENTS.md 中用一对自闭合 HTML 注释包裹**正文**（不含 `## 标题`）：
+
+```markdown
+## 提交消息规则
+<!-- sync:commit-message:start -->
+- 始终使用简体中文。
+- ...
+<!-- sync:commit-message:end -->
+```
+
+[scripts/sync-ai-rules.mjs](../scripts/sync-ai-rules.mjs) 的 `extractMarkedRegion('sync:commit-message')` 按 marker 切片，与中文标题完全解耦：标题想叫"提交消息规则"还是"Commit Message 规范"都不影响。
+
+marker 的命名约定：
+
+- 统一前缀 `sync:`，方便用 `<!--\s*sync:[^\s>]+\s*-->` 一次扫出全部。
+- 用 `:start` / `:end` 作为成对后缀。
+- HTML 注释在 markdown 渲染时不可见，AGENTS.md 阅读体验不变。
+
+### 2. fail-fast + 友好错误（兜底）
+
+如果 marker 被误删 / 改名 / 不成对，脚本会 `process.exit(1)` 并打印：
+
+```
+错误：AGENTS.md 中未找到完整的 marker 对：
+  <!-- sync:commit-message:start -->
+  <!-- sync:commit-message:end -->
+AGENTS.md 中目前的 sync marker：
+  - <!-- sync:commit-rules:start -->
+  - <!-- sync:commit-message:end -->
+若已重命名 marker，请同步更新 scripts/sync-ai-rules.mjs 中对应的字面量。
+```
+
+把"AGENTS.md 当前实际存在的 sync marker"列出来，让维护者立刻看出"原来我把 `:start` 改名了"或"我漏了 `:end`"，无需再回去逐字对照。
+
+### 维护新章节的流程
+
+为某个新章节增加单独的副本输出时：
+
+1. 在 AGENTS.md 用 `<!-- sync:<name>:start --> ... <!-- sync:<name>:end -->` 包裹该节正文。
+2. 在 [scripts/sync-ai-rules.mjs](../scripts/sync-ai-rules.mjs) 中调用 `extractMarkedRegion('sync:<name>')` 取内容，并加一行 `write(...)` 输出对应副本。
+3. 运行 `bun sync-ai-rules` 验证。
 
 ## 验证
 
